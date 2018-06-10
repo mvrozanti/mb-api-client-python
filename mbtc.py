@@ -13,45 +13,48 @@ MB_TAPI_ID = os.environ['MERCADO_BTC_ID']
 MB_TAPI_SECRET = os.environ['MERCADO_BTC_PASS']
 REQUEST_HOST = 'www.mercadobitcoin.net'
 REQUEST_PATH = '/tapi/v3/'
-NONCE = str(int(time.time()))
 
 parser = argparse.ArgumentParser(description='Interface for mercadobitcoin.com.br API')
 group = parser.add_mutually_exclusive_group()
-group.add_argument('-l', action='store_const', const='list_orders', help='list orders')
-# parser.add_argument('-l', action='store_true', help='list orders')
-# parser.add_argument('-l', action='store_true', help='list orders')
-# parser.add_argument('-l', action='store_true', help='list orders')
-parsed_args = parser.parse_args()
+group.add_argument('-l', action='store_const', const='list_orders',         help='list orders')
+group.add_argument('-i', action='store_const', const='get_account_info',    help='get account info')
+group.add_argument('-o', metavar='order id', help='get order')
+group.add_argument('-b', action='store_const', const='list_orderbook',     help='list orderbook')
+# group.add_argument('-', action='store_const', const='place_buy_order',    help='get account info')
+# group.add_argument('-', action='store_const', const='cancel_order',       help='get account info')
+# group.add_argument('-', action='store_const', const='get_withdrawal',     help='get account info')
+# group.add_argument('-', action='store_const', const='withdraw_coin',     help='get account info')
+
+op=vars(parser.parse_args())
+if len(op) == 0: sys.exit(1)
 
 params, tapi_method = None,None
-print 'l' in parsed_args
-print vars(parsed_args)
+print op
+tapi_method = filter(None,op.values())[0]
+
+# create params
 params = {
-        'tapi_method': 'list_orders',
-        'NONCE': NONCE,
-        'coin_pair': 'BRLBTC'
-        }
-# if parsed_args.l: 
-    # list orders 
-#     # list orders 
-#     params = {
-#             'tapi_method': 'list_system_messages',
-#             'NONCE': NONCE,
-#             'coin_pair': 'BRLBTC'
-#             }
-# 
-#     try:
-#         conn = httplib.HTTPSConnection(REQUEST_HOST)
-#     params = urllib.urlencode(params)
-#     params_string = REQUEST_PATH + '?' + params
-#     H = hmac.new(MB_TAPI_SECRET, digestmod=hashlib.sha512)
-#     H.update(params_string)
-#     tapi_mac = H.hexdigest()
-#     conn.request("POST", REQUEST_PATH, params, { 'Content-type': 'application/x-www-form-urlencoded', 'TAPI-ID': MB_TAPI_ID, 'TAPI-MAC': tapi_mac })
-#     response = conn.getresponse()
-#     response = response.read()
-#     response_json = json.loads(response, object_pairs_hook=OrderedDict)
-#     print "status: %s" % response_json['status_code']
-#     print json.dumps(response_json, indent=4)
-# finally:
-#     if conn: conn.close()
+    'tapi_method' : tapi_method,
+    'tapi_nonce' : str(int(time.time())),
+    'coin_pair' : 'BRLBTC'
+    }
+if op['o'] != None: 
+    params['order_id'] = params['tapi_method']
+    params['tapi_method'] = 'get_order'
+
+try:
+    conn = httplib.HTTPSConnection(REQUEST_HOST)
+    params = urllib.urlencode(params)
+    params_string = REQUEST_PATH + '?' + params
+    H = hmac.new(MB_TAPI_SECRET, digestmod=hashlib.sha512)
+    H.update(params_string)
+    tapi_mac = H.hexdigest()
+    headers = { 'Content-type': 'application/x-www-form-urlencoded', 'TAPI-ID': MB_TAPI_ID, 'TAPI-MAC': tapi_mac }
+    conn.request('POST', REQUEST_PATH, params, headers)
+    response = conn.getresponse()
+    response = response.read()
+    response_json = json.loads(response, object_pairs_hook=OrderedDict)
+    print "status: %s" % response_json['status_code']
+    print json.dumps(response_json, indent=4)
+finally:
+    if conn: conn.close()
