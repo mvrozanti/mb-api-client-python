@@ -23,18 +23,16 @@ group.add_argument('-l', action='store_const', const='list_orders', help='list o
 # parser.add_argument('-l', action='store_true', help='list orders')
 parsed_args = parser.parse_args()
 
-params = None
-tapi_method = None
-
-print type(parsed_args)
-if parsed_args.l:
-    # list orders 
-    params = {
-            'tapi_method': 'list_orders',
-            'NONCE': NONCE,
-            'coin_pair': 'BRLBTC'
-            }
+params, tapi_method = None,None
+print 'l' in parsed_args
+print vars(parsed_args)
+params = {
+        'tapi_method': 'list_orders',
+        'NONCE': NONCE,
+        'coin_pair': 'BRLBTC'
+        }
 # if parsed_args.l: 
+    # list orders 
 #     # list orders 
 #     params = {
 #             'tapi_method': 'list_system_messages',
