@@ -18,26 +18,24 @@ parser = argparse.ArgumentParser(description='Interface for mercadobitcoin.com.b
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-l', action='store_const', const='list_orders',         help='list orders')
 group.add_argument('-i', action='store_const', const='get_account_info',    help='get account info')
-group.add_argument('-o', metavar='order id', help='get order')
-group.add_argument('-b', action='store_const', const='list_orderbook',     help='list orderbook')
+group.add_argument('-o', metavar='order id',                                help='get order')
+group.add_argument('-b', action='store_const', const='list_orderbook',      help='list orderbook')
 # group.add_argument('-', action='store_const', const='place_buy_order',    help='get account info')
 # group.add_argument('-', action='store_const', const='cancel_order',       help='get account info')
 # group.add_argument('-', action='store_const', const='get_withdrawal',     help='get account info')
 # group.add_argument('-', action='store_const', const='withdraw_coin',     help='get account info')
 
 op=vars(parser.parse_args())
-if len(op) == 0: sys.exit(1)
+if len(op) == 0: print 'Needs at least one argument' or sys.exit(1)
 
-params, tapi_method = None,None
-print op
-tapi_method = filter(None,op.values())[0]
+params, tapi_method = None,filter(None,op.values())[0]
 
-# create params
 params = {
     'tapi_method' : tapi_method,
     'tapi_nonce' : str(int(time.time())),
     'coin_pair' : 'BRLBTC'
     }
+
 if op['o'] != None: 
     params['order_id'] = params['tapi_method']
     params['tapi_method'] = 'get_order'
